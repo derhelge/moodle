@@ -777,7 +777,7 @@ function login_lock_account($user) {
 
         if ($message) {
             // Directly email rather than using the messaging system to ensure its not routed to a popup or jabber.
-            email_to_user($user, $supportuser, $subject, $message);
+            //email_to_user($user, $supportuser, $subject, $message);
         }
 
         force_current_language($oldforcelang);

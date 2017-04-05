@@ -155,6 +155,24 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         }
     }
 
+    if (!$user and $errorcode == AUTH_LOGIN_LOCKOUT){
+        echo $OUTPUT->header();
+        echo $OUTPUT->box('<div class="customlockoutwarning">
+        <div class="customiconbox customwarning">Sie haben Ihre Anmeldedaten mehrfach falsch eingegeben. Daher ist Ihr Benutzendenkonto aus Sicherheitsgr&uuml;nden <strong>f&uuml;r 10 Minuten gesperrt</strong>. So soll ein eventueller Missbrauch Ihres Accounts verhindert werden.</div>
+        <h4>F&uuml;r Hochschulangeh&ouml;rige gilt:</h4>
+        <p>Benutzen Sie <strong>nach Ablauf der 10-min&uuml;tigen Sperre</strong> als Anmeldenamen Ihre Matrikel-Nr., Ihre E-Mail-Adresse oder Ihre LoginID.<br />
+        Benutzen Sie das Kennwort Ihres THGA-Benutzendenaccounts (WLAN, Windows-Anmeldung, etc.).</p>
+                <p>Falls Sie sich nicht an Ihr Kennwort erinnern, melden sie sich bitte im Rechenzentrum (G1 R304, R305, R306), &Ouml;ffnungszeiten finden Sie <a target="_blank" href="https://www.thga.de/rechenzentrum.html">hier</a>.<br />
+                Bitte beachten Sie, dass Sie <strong>pers&ouml;nlich erscheinen und einen g&uuml;ltigen Studierendenausweis mitbringen m&uuml;ssen</strong>. Eine Beantragung der Passwortr&uuml;cksetzung per Telefon oder per E-Mail ist leider nicht m&ouml;glich.</p>
+        <h4>F&uuml;r Nicht-Hochschulangeh&ouml;rige gilt:</h4>
+        <p>Wenn Sie Sich an Ihren Anmeldenamen und Ihr Passwort erinnern k&ouml;nnen, versuchen Sie s nach <strong>nach Ablauf der 10-min&uuml;tigen Sperre</strong> noch einmal.
+        Wenn Sie Sich an Ihren Anmeldenamen (oder die hinterlegte E-Mail-Adresse) erinnern k&ouml;nnen, versuchen Sie, das Passwort &uuml;ber <a href="/login/forgot_password.php">dieses Formular</a> zur&uuml;ckzusetzen.<br />
+        Sollten Sie weder Anmeldenamen noch die bei Registrierung genutzte E-Mail-Adresse wissen, schreiben Sie bitte eine Mail an <a href="mailto:moodle@thga.de">moodle@thga.de</a> oder legen Sie Sich <a href="/login/signup.php">hier</a> ein neues Konto an.
+
+    </div>');
+        echo $OUTPUT->footer();
+    }
+
     // Intercept 'restored' users to provide them with info & reset password
     if (!$user and $frm and is_restored_user($frm->username)) {
         $PAGE->set_title(get_string('restoredaccount'));
