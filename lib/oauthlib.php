@@ -504,11 +504,15 @@ abstract class oauth2_client extends curl {
             $response = $this->post($this->token_url(), $params);
         }
 
-        if (!$this->info['http_code'] === 200) {
+        if ($this->info['http_code'] !== 200) {
             throw new moodle_exception('Could not upgrade oauth token');
         }
 
         $r = json_decode($response);
+
+        if (is_null($r)) {
+            throw new moodle_exception("Could not decode JSON token response");
+        }
 
         if (!isset($r->access_token)) {
             return false;
@@ -551,6 +555,9 @@ abstract class oauth2_client extends curl {
                 $this->setHeader('Authorization: Bearer '.$this->accesstoken->token);
             }
         }
+
+        // Force JSON format content in response.
+        $this->setHeader('Accept: application/json');
 
         return parent::request($murl->out(false), $options);
     }

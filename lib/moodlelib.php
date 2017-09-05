@@ -488,13 +488,14 @@ define('HOMEPAGE_USER', 2);
 /**
  * Hub directory url (should be moodle.org)
  */
-define('HUB_HUBDIRECTORYURL', "http://hubdirectory.moodle.org");
+define('HUB_HUBDIRECTORYURL', "https://hubdirectory.moodle.org");
 
 
 /**
- * Moodle.org url (should be moodle.org)
+ * Moodle.net url (should be moodle.net)
  */
-define('HUB_MOODLEORGHUBURL', "http://hub.moodle.org");
+define('HUB_MOODLEORGHUBURL', "https://moodle.net");
+define('HUB_OLDMOODLEORGHUBURL', "http://hub.moodle.org");
 
 /**
  * Moodle mobile app service name
@@ -1932,6 +1933,10 @@ function set_user_preference($name, $value, $user = null) {
 
     // Update value in cache.
     $user->preference[$name] = $value;
+    // Update the $USER in case where we've not a direct reference to $USER.
+    if ($user !== $USER && $user->id == $USER->id) {
+        $USER->preference[$name] = $value;
+    }
 
     // Set reload flag for other sessions.
     mark_user_preferences_changed($user->id);
@@ -2001,6 +2006,10 @@ function unset_user_preference($name, $user = null) {
 
     // Delete the preference from cache.
     unset($user->preference[$name]);
+    // Update the $USER in case where we've not a direct reference to $USER.
+    if ($user !== $USER && $user->id == $USER->id) {
+        unset($USER->preference[$name]);
+    }
 
     // Set reload flag for other sessions.
     mark_user_preferences_changed($user->id);
@@ -2890,12 +2899,11 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         if ($preventredirect) {
             throw new require_login_exception('Activity is hidden');
         }
-        if ($course->id != SITEID) {
-            $url = new moodle_url('/course/view.php', array('id' => $course->id));
-        } else {
-            $url = new moodle_url('/');
-        }
-        redirect($url, get_string('activityiscurrentlyhidden'));
+        // Get the error message that activity is not available and why (if explanation can be shown to the user).
+        $PAGE->set_course($course);
+        $renderer = $PAGE->get_renderer('course');
+        $message = $renderer->course_section_cm_unavailable_error_message($cm);
+        redirect(course_get_url($course), $message, null, \core\output\notification::NOTIFY_ERROR);
     }
 
     // Set the global $COURSE.
