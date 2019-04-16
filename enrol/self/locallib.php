@@ -117,7 +117,7 @@ class enrol_self_enrol_form extends moodleform {
     }
 
     public function validation($data, $files) {
-        global $DB, $CFG;
+        global $DB, $CFG, $USER; //UDE-HACK $USER added
 
         $errors = parent::validation($data, $files);
         $instance = $this->instance;
@@ -127,6 +127,9 @@ class enrol_self_enrol_form extends moodleform {
             return $errors;
         }
 
+        //UDE-HACK added
+        $paswdcorrect = false;
+        //UDE-HACK end
         if ($instance->password) {
             if ($data['enrolpassword'] !== $instance->password) {
                 if ($instance->customint1) {
@@ -145,8 +148,28 @@ class enrol_self_enrol_form extends moodleform {
                         $errors['enrolpassword'] = get_string('passwordinvalid', 'enrol_self');
                     }
                 }
-            }
+	    }
+	    //UDE-HACK added
+            else{
+               $paswdcorrect = true;
+	    }
+	    //UDE-HACK end
         }
+        //UDE-HACK added : check for valid Unikennung
+        if($instance->customchar1 == "1" ){
+               if(!($USER->auth == 'cas' || $USER->auth == 'ldap' || $USER->auth == 'ldap_syncplus' || $USER->auth == 'shibboleth')){
+
+                       if ($instance->password) {
+                               if ($paswdcorrect){
+                                       $errors['enrolpassword'] = get_string('emailinvalid_passwd', 'enrol_self');
+                               }
+                       } else {
+                               $errors['nokey'] = get_string('emailinvalid', 'enrol_self');
+                       }
+               }
+
+        }
+        //UDE-HACK end
 
         return $errors;
     }

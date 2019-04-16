@@ -55,6 +55,11 @@ class enrol_self_plugin extends enrol_plugin {
                 // would hide self-enrolment icons from guests.
                 continue;
             }
+            if ($instance->customchar1 == true) {
+                $unikennung = true;
+            } else {
+                $unikennung = false;
+            }
             if ($instance->password or $instance->customint1) {
                 $key = true;
             } else {
@@ -62,6 +67,9 @@ class enrol_self_plugin extends enrol_plugin {
             }
         }
         $icons = array();
+        if ($unikennung) {
+            $icons[] = new pix_icon('unikennung', get_string('pluginname', 'enrol_self'), 'enrol_self');
+        }
         if ($nokey) {
             $icons[] = new pix_icon('withoutkey', get_string('pluginname', 'enrol_self'), 'enrol_self');
         }
@@ -356,6 +364,7 @@ class enrol_self_plugin extends enrol_plugin {
         $fields['customint4']      = $this->get_config('sendcoursewelcomemessage');
         $fields['customint5']      = 0;
         $fields['customint6']      = $this->get_config('newenrols');
+        $fields['customchar1']     = $this->get_config('unikennung'); //UDE-HACK added
 
         return $fields;
     }
@@ -745,6 +754,10 @@ class enrol_self_plugin extends enrol_plugin {
         $options = $this->get_groupkey_options();
         $mform->addElement('select', 'customint1', get_string('groupkey', 'enrol_self'), $options);
         $mform->addHelpButton('customint1', 'groupkey', 'enrol_self');
+
+        $mform->addElement('select', 'customchar1', get_string('unikennung', 'enrol_self'), $options);
+        $mform->addHelpButton('customchar1', 'unikennung', 'enrol_self');
+        //$mform->setDefault('customchar1', $plugin->get_config('unikennung'));
 
         $roles = $this->extend_assignable_roles($context, $instance->roleid);
         $mform->addElement('select', 'roleid', get_string('role', 'enrol_self'), $roles);

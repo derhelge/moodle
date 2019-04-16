@@ -22,6 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+//UDE-HACK added
+$string['unikennung']          = 'Only users with Unikennung';
+$string['unikennung_help']     = 'Only users with Unikennung are allowed to enrol course.';
+$string['unikennung_desc']     = 'Limit access to users with Unikennung.';
+$string['emailinvalid']        = 'The access is restricted to users with Unikennung.';
+$string['emailinvalid_passwd']         = 'Password correct, though the access is restricted to users with Unikennung.';
+//UDE-HACK end
+
 $string['canntenrol'] = 'Enrolment is disabled or inactive';
 $string['canntenrolearly'] = 'You cannot enrol yet; enrolment starts on {$a}.';
 $string['canntenrollate'] = 'You cannot enrol any more, since enrolment ended on {$a}.';

@@ -74,6 +74,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_self/groupkey',
         get_string('groupkey', 'enrol_self'), get_string('groupkey_desc', 'enrol_self'), 0, $options));
 
+    //UDE-HACK added
+    $settings->add(new admin_setting_configselect('enrol_self/unikennung',
+       get_string('unikennung', 'enrol_self'), get_string('unikennung_desc', 'enrol_self'), 0, $options));
+    //UDE-HACK end
+
     if (!during_initial_install()) {
         $options = get_default_enrol_roles(context_system::instance());
         $student = get_archetype_roles('student');
