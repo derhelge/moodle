@@ -574,9 +574,11 @@ class core_files_renderer extends plugin_renderer_base {
         $rv = '
 <div tabindex="0" class="file-picker fp-generallayout" role="dialog" aria-live="assertive">
     <div class="fp-repo-area">
-        <ul class="fp-list">
-            <li class="fp-repo">
-                <a href="#"><img class="fp-repo-icon" alt=" " width="16" height="16" />&nbsp;<span class="fp-repo-name"></span></a>
+        <ul class="fp-list" role="tablist">
+            <li class="fp-repo" role="tab" aria-selected="false" tabindex="-1">
+                <a href="#" tabindex="-1"><img class="fp-repo-icon" alt=" " width="16" height="16" />&nbsp;
+                    <span class="fp-repo-name"></span>
+                </a>
             </li>
         </ul>
     </div>
@@ -601,7 +603,7 @@ class core_files_renderer extends plugin_renderer_base {
                         </a>
                     </div>
                     <div class="fp-tb-manage">
-                        <a title="'. get_string('settings', 'repository') .'" href="#">
+                        <a title="'. get_string('manageurl', 'repository') .'" href="#">
                             ' . $this->pix_icon('a/setting', '') . '
                         </a>
                     </div>
@@ -768,6 +770,12 @@ class core_files_renderer extends plugin_renderer_base {
                 </div>
                 <div class="fp-linktype-4 control-group control-radio clearfix">
                     <label class="control-label control-radio">'.get_string('makefilereference', 'repository').'</label>
+                    <div class="controls control-radio">
+                        <input type="radio"/>
+                    </div>
+                </div>
+                <div class="fp-linktype-8 control-group control-radio clearfix">
+                    <label class="control-label control-radio">'.get_string('makefilecontrolledlink', 'repository').'</label>
                     <div class="controls control-radio">
                         <input type="radio"/>
                     </div>

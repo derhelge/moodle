@@ -221,29 +221,6 @@ class behat_navigation extends behat_base {
     }
 
     /**
-     * Click link in navigation tree that matches the text in parentnode/s (seperated using greater-than character if more than one)
-     *
-     * @Given /^I navigate to "(?P<nodetext_string>(?:[^"]|\\")*)" node in "(?P<parentnodes_string>(?:[^"]|\\")*)"$/
-     *
-     * @todo MDL-57281 deprecate in Moodle 3.1
-     *
-     * @throws ExpectationException
-     * @param string $nodetext navigation node to click.
-     * @param string $parentnodes comma seperated list of parent nodes.
-     * @return void
-     */
-    public function i_navigate_to_node_in($nodetext, $parentnodes) {
-        // This step needs to be deprecated and replaced with one of:
-        // - I navigate to "PATH" in current page administration
-        // - I navigate to "PATH" in site administration
-        // - I navigate to course participants
-        // - I navigate to "PATH" in the course gradebook
-        // - I click on "LINK" "link" in the "Navigation" "block" .
-        $parentnodes = array_map('trim', explode('>', $parentnodes));
-        $this->select_node_in_navigation($nodetext, $parentnodes);
-    }
-
-    /**
      * Finds a node in the Navigation or Administration tree
      *
      * @param string $nodetext
@@ -297,7 +274,7 @@ class behat_navigation extends behat_base {
                     $jscondition = '(document.evaluate("' . $pnode->getXpath() . '", document, null, '.
                         'XPathResult.ANY_TYPE, null).iterateNext().getAttribute(\'data-loaded\') == "true")';
 
-                    $this->getSession()->wait(self::EXTENDED_TIMEOUT * 1000, $jscondition);
+                    $this->getSession()->wait(behat_base::get_extended_timeout() * 1000, $jscondition);
                 }
             }
         }
@@ -324,7 +301,6 @@ class behat_navigation extends behat_base {
             throw new ExpectationException('Navigation node "' . $nodetext . '" not found under "' .
                 implode($parentnodes, ' > ') . '"', $this->getSession());
         }
-
         $nodetoclick->click();
     }
 
@@ -539,7 +515,7 @@ class behat_navigation extends behat_base {
         $bodynode = $this->find('xpath', 'body');
         $bodyclass = $bodynode->getAttribute('class');
         $matches = [];
-        if (preg_match('/(?<=^course-|\scourse-)\d/', $bodyclass, $matches) && !empty($matches)) {
+        if (preg_match('/(?<=^course-|\scourse-)\d+/', $bodyclass, $matches) && !empty($matches)) {
             $courseid = intval($matches[0]);
         } else {
             $courseid = SITEID;
@@ -574,4 +550,38 @@ class behat_navigation extends behat_base {
         $USER = $globuser;
     }
 
+    /**
+     * Opens the course homepage.
+     *
+     * @Given /^I am on "(?P<coursefullname_string>(?:[^"]|\\")*)" course homepage$/
+     * @throws coding_exception
+     * @param string $coursefullname The full name of the course.
+     * @return void
+     */
+    public function i_am_on_course_homepage($coursefullname) {
+        global $DB;
+        $course = $DB->get_record("course", array("fullname" => $coursefullname), 'id', MUST_EXIST);
+        $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
+
+    /**
+     * Opens the course homepage with editing mode on.
+     *
+     * @Given /^I am on "(?P<coursefullname_string>(?:[^"]|\\")*)" course homepage with editing mode on$/
+     * @throws coding_exception
+     * @param string $coursefullname The course full name of the course.
+     * @return void
+     */
+    public function i_am_on_course_homepage_with_editing_mode_on($coursefullname) {
+        global $DB;
+        $course = $DB->get_record("course", array("fullname" => $coursefullname), 'id', MUST_EXIST);
+        $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+        try {
+            $this->execute("behat_forms::press_button", get_string('turneditingon'));
+        } catch (Exception $e) {
+            $this->execute("behat_navigation::i_navigate_to_in_current_page_administration", [get_string('turneditingon')]);
+        }
+    }
 }

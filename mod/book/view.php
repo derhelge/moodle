@@ -149,7 +149,6 @@ foreach ($chapters as $ch) {
     $last = $ch->id;
 }
 
-$islastchapter = false;
 if ($book->navstyle) {
     $navprevicon = right_to_left() ? 'nav_next' : 'nav_prev';
     $navnexticon = right_to_left() ? 'nav_prev' : 'nav_next';
@@ -196,9 +195,13 @@ if ($book->navstyle) {
             $chnavigation .= ' <a title="' . $navexit . '" class="bookexit"  href="'.$returnurl.'">' .
                 '<span class="chaptername">' . $navexit . '&nbsp;' . $OUTPUT->uarrow() . '</span></a>';
         }
-
-        $islastchapter = true;
     }
+}
+
+// We need to discover if this is the last chapter to mark activity as completed.
+$islastchapter = false;
+if (!$nextid) {
+    $islastchapter = true;
 }
 
 book_view($book, $chapter, $islastchapter, $course, $cm, $context);
@@ -236,6 +239,10 @@ $chaptertext = file_rewrite_pluginfile_urls($chapter->content, 'pluginfile.php',
 echo format_text($chaptertext, $chapter->contentformat, array('noclean'=>true, 'overflowdiv'=>true, 'context'=>$context));
 
 echo $OUTPUT->box_end();
+
+if (core_tag_tag::is_enabled('mod_book', 'book_chapters')) {
+    echo $OUTPUT->tag_list(core_tag_tag::get_item_tags('mod_book', 'book_chapters', $chapter->id), null, 'book-tags');
+}
 
 if ($book->navstyle) {
     // Lower navigation.

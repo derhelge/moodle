@@ -1,6 +1,12 @@
 This files describes API changes in /mod/forum/*,
 information provided here is intended especially for developers.
 
+=== 3.6 ===
+  * forum_print_post should be surrounded with calls to forum_print_post_start and forum_print_post_end to create the proper HTML structure for the post.
+
+=== 3.4 ===
+  * External function get_forum_discussion_posts now returns an additional field "ratinginfo" containing rating information.
+
 === 3.3 ===
   * External function get_forums_by_courses now returns and additional field "istracked" that indicates if the user
    is tracking the related forum.
@@ -97,7 +103,7 @@ information provided here is intended especially for developers.
 * The function forum_shorten_post() has been deprecated. It was doing a poor
   job of shortening forum post text and the shorten_text() function does a
   much better job.
-* The constant FORUM_TRACKING_ON has been depreciated and replaced by
+* The constant FORUM_TRACKING_ON has been deprecated and replaced by
   FORUM_TRACKING_FORCED. The value between them is maintained, so they are
   interchangeable, but code should migrate to the new name.
 

@@ -20,7 +20,7 @@ Feature: Manage availability conditions
     And the following config values are set as admin:
       | enableavailability | 1 |
     And I am on homepage
-    And I navigate to "Manage restrictions" node in "Site administration > Plugins > Availability restrictions"
+    And I navigate to "Plugins > Availability restrictions > Manage restrictions" in site administration
 
     # Having clicked on it, I should also see the list of plugins.
     And I should see "Restriction by date"
@@ -34,7 +34,7 @@ Feature: Manage availability conditions
       | Course 1 | C1        | topics |
     And I log in as "admin"
     And I am on site homepage
-    When I navigate to "Manage restrictions" node in "Site administration > Plugins > Availability restrictions"
+    When I navigate to "Plugins > Availability restrictions > Manage restrictions" in site administration
 
     # Check the icon is there (it should be a Hide icon, meaning is currently visible).
     Then "Hide" "icon" should exist in the "Restriction by date" "table_row"
@@ -49,9 +49,7 @@ Feature: Manage availability conditions
 
     # OK, toggling works. Set the grade one to Hide and we'll go see if it actually worked.
     And I click on "Hide" "icon" in the "Restriction by grade" "table_row"
-    And I am on site homepage
-    And I follow "Course 1"
-    And I turn editing mode on
+    And I am on "Course 1" course homepage with editing mode on
     And I add a "Page" to section "1"
     And I expand all fieldsets
     And I click on "Add restriction..." "button"

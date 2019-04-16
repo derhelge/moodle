@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -49,6 +48,7 @@ class conversion_cleanup_task extends \core\task\scheduled_task {
      */
     public function execute() {
         \core_files\conversion::remove_old_conversion_records();
+        \core_files\conversion::remove_orphan_records();
     }
 
 }

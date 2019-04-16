@@ -23,6 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
  **/
 
+define('NO_OUTPUT_BUFFERING', true);
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot.'/mod/lesson/locallib.php');
 require_once($CFG->libdir . '/grade/constants.php');
@@ -121,6 +123,16 @@ if (empty($pageid)) {
 
     $lastpageseen = $lesson->get_last_page_seen($retries);
 
+    // Check if the lesson was attempted in an external device like the mobile app.
+    // This check makes sense only when the lesson allows offline attempts.
+    if ($lesson->allowofflineattempts && $timers = $lesson->get_user_timers($USER->id, 'starttime DESC', '*', 0, 1)) {
+        $timer = current($timers);
+        if (!empty($timer->timemodifiedoffline)) {
+            $lasttime = format_time(time() - $timer->timemodifiedoffline);
+            $lesson->add_message(get_string('offlinedatamessage', 'lesson', $lasttime), 'warning');
+        }
+    }
+
     // Check to see if end of lesson was reached.
     if (($lastpageseen !== false && ($lastpageseen != LESSON_EOL))) {
         // End not reached. Check if the user left.
@@ -202,7 +214,7 @@ if ($pageid != LESSON_EOL) {
         }
     }
 
-    list($page, $lessoncontent) = $lesson->prepare_page_and_contents($pageid, $lessonoutput, $reviewmode);
+    list($newpageid, $page, $lessoncontent) = $lesson->prepare_page_and_contents($pageid, $lessonoutput, $reviewmode);
 
     if (($edit != -1) && $PAGE->user_allowed_editing()) {
         $USER->editing = $edit;

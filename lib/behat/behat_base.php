@@ -28,9 +28,11 @@
 
 // NOTE: no MOODLE_INTERNAL test here, this file may be required by behat before including /config.php.
 
-use Behat\Mink\Exception\ExpectationException as ExpectationException,
-    Behat\Mink\Exception\ElementNotFoundException as ElementNotFoundException,
-    Behat\Mink\Element\NodeElement as NodeElement;
+use Behat\Mink\Exception\DriverException;
+use Behat\Mink\Exception\ExpectationException;
+use Behat\Mink\Exception\ElementNotFoundException;
+use Behat\Mink\Element\NodeElement;
+use Behat\Mink\Session;
 
 /**
  * Steps definitions base class.
@@ -165,7 +167,7 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
 
         // How much we will be waiting for the element to appear.
         if (!$timeout) {
-            $timeout = self::TIMEOUT;
+            $timeout = self::get_timeout();
             $microsleep = false;
         } else {
             // Spinning each 0.1 seconds if the timeout was forced as we understand
@@ -306,13 +308,13 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
 
         // Using default timeout which is pretty high.
         if (!$timeout) {
-            $timeout = self::TIMEOUT;
+            $timeout = self::get_timeout();
         }
         if ($microsleep) {
-            // Will sleep 1/10th of a second by default for self::TIMEOUT seconds.
+            // Will sleep 1/10th of a second by default for self::get_timeout() seconds.
             $loops = $timeout * 10;
         } else {
-            // Will sleep for self::TIMEOUT seconds.
+            // Will sleep for self::get_timeout() seconds.
             $loops = $timeout;
         }
 
@@ -335,8 +337,6 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 if (!$exception) {
                     $exception = $e;
                 }
-                // We wait until no exception is thrown or timeout expires.
-                continue;
             }
 
             if ($this->running_javascript()) {
@@ -501,7 +501,7 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 return false;
             },
             array('selector' => $selector, 'locator' => $locator),
-            self::EXTENDED_TIMEOUT,
+            self::get_extended_timeout(),
             $exception,
             true
         );
@@ -535,7 +535,7 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 return false;
             },
             array('selector' => $selector, 'locator' => $locator),
-            self::EXTENDED_TIMEOUT,
+            self::get_extended_timeout(),
             $exception,
             true
         );
@@ -567,7 +567,7 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 return false;
             },
             $node,
-            self::EXTENDED_TIMEOUT,
+            self::get_extended_timeout(),
             $exception,
             true
         );
@@ -602,7 +602,7 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 return false;
             },
             array($node, $attribute, $attributevalue),
-            self::EXTENDED_TIMEOUT,
+            self::get_extended_timeout(),
             $exception,
             true
         );
@@ -710,24 +710,31 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
     /**
      * Waits for all the JS to be loaded.
      *
-     * @throws \Exception
-     * @throws NoSuchWindow
-     * @throws UnknownError
-     * @return bool True or false depending whether all the JS is loaded or not.
+     * @return  bool Whether any JS is still pending completion.
      */
     public function wait_for_pending_js() {
-        // Waiting for JS is only valid for JS scenarios.
         if (!$this->running_javascript()) {
-            return;
+            // JS is not available therefore there is nothing to wait for.
+            return false;
         }
 
+        return static::wait_for_pending_js_in_session($this->getSession());
+    }
+
+    /**
+     * Waits for all the JS to be loaded.
+     *
+     * @param   Session $session The Mink Session where JS can be run
+     * @return  bool Whether any JS is still pending completion.
+     */
+    public static function wait_for_pending_js_in_session(Session $session) {
         // We don't use behat_base::spin() here as we don't want to end up with an exception
         // if the page & JSs don't finish loading properly.
-        for ($i = 0; $i < self::EXTENDED_TIMEOUT * 10; $i++) {
+        for ($i = 0; $i < self::get_extended_timeout() * 10; $i++) {
             $pending = '';
             try {
-                $jscode = '
-                    return function() {
+                $jscode = trim(preg_replace('/\s+/', ' ', '
+                    return (function() {
                         if (typeof M === "undefined") {
                             if (document.readyState === "complete") {
                                 return "";
@@ -741,8 +748,8 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                         } else {
                             return "incomplete"
                         }
-                    }();';
-                $pending = $this->getSession()->evaluateScript($jscode);
+                    }());'));
+                $pending = $session->evaluateScript($jscode);
             } catch (NoSuchWindow $nsw) {
                 // We catch an exception here, in case we just closed the window we were interacting with.
                 // No javascript is running if there is no window right?
@@ -763,12 +770,14 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
             usleep(100000);
         }
 
-        // Timeout waiting for JS to complete. It will be catched and forwarded to behat_hooks::i_look_for_exceptions().
-        // It is unlikely that Javascript code of a page or an AJAX request needs more than self::EXTENDED_TIMEOUT seconds
+        // Timeout waiting for JS to complete. It will be caught and forwarded to behat_hooks::i_look_for_exceptions().
+        // It is unlikely that Javascript code of a page or an AJAX request needs more than get_extended_timeout() seconds
         // to be loaded, although when pages contains Javascript errors M.util.js_complete() can not be executed, so the
         // number of JS pending code and JS completed code will not match and we will reach this point.
-        throw new \Exception('Javascript code and/or AJAX requests are not ready after ' . self::EXTENDED_TIMEOUT .
-            ' seconds. There is a Javascript error or the code is extremely slow.');
+        throw new \Exception('Javascript code and/or AJAX requests are not ready after ' .
+                self::get_extended_timeout() .
+                ' seconds. There is a Javascript error or the code is extremely slow. ' .
+                'If you are using a slow machine, consider setting $CFG->behat_increasetimeout.');
     }
 
     /**
@@ -883,6 +892,8 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
 
         } catch (NoSuchWindow $e) {
             // If we were interacting with a popup window it will not exists after closing it.
+        } catch (DriverException $e) {
+            // Same reason as above.
         }
     }
 
@@ -946,6 +957,34 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
     }
 
     /**
+     * Set current $USER, reset access cache.
+     *
+     * In some cases, behat will execute the code as admin but in many cases we need to set an specific user as some
+     * API's might rely on the logged user to take some action.
+     *
+     * @param null|int|stdClass $user user record, null or 0 means non-logged-in, positive integer means userid
+     */
+    public static function set_user($user = null) {
+        global $DB;
+
+        if (is_object($user)) {
+            $user = clone($user);
+        } else if (!$user) {
+            // Assign valid data to admin user (some generator-related code needs a valid user).
+            $user = $DB->get_record('user', array('username' => 'admin'));
+        } else {
+            $user = $DB->get_record('user', array('id' => $user));
+        }
+        unset($user->description);
+        unset($user->access);
+        unset($user->preference);
+
+        // Ensure session is empty, as it may contain caches and user specific info.
+        \core\session\manager::init_empty_session();
+
+        \core\session\manager::set_user($user);
+    }
+    /**
      * Trigger click on node via javascript instead of actually clicking on it via pointer.
      *
      * This function resolves the issue of nested elements with click listeners or links - in these cases clicking via
@@ -959,7 +998,62 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
         }
         $this->ensure_node_is_visible($node); // Ensures hidden elements can't be clicked.
         $xpath = $node->getXpath();
-        $script = "Syn.click({{ELEMENT}})";
-        $this->getSession()->getDriver()->triggerSynScript($xpath, $script);
+        $driver = $this->getSession()->getDriver();
+        if ($driver instanceof \Moodle\BehatExtension\Driver\MoodleSelenium2Driver) {
+            $script = "Syn.click({{ELEMENT}})";
+            $driver->triggerSynScript($xpath, $script);
+        } else {
+            $driver->click($xpath);
+        }
+    }
+
+    /**
+     * Gets the required timeout in seconds.
+     *
+     * @param int $timeout One of the TIMEOUT constants
+     * @return int Actual timeout (in seconds)
+     */
+    protected static function get_real_timeout(int $timeout) : int {
+        global $CFG;
+        if (!empty($CFG->behat_increasetimeout)) {
+            return $timeout * $CFG->behat_increasetimeout;
+        } else {
+            return $timeout;
+        }
+    }
+
+    /**
+     * Gets the default timeout.
+     *
+     * The timeout for each Behat step (load page, wait for an element to load...).
+     *
+     * @return int Timeout in seconds
+     */
+    public static function get_timeout() : int {
+        return self::get_real_timeout(6);
+    }
+
+    /**
+     * Gets the reduced timeout.
+     *
+     * A reduced timeout for cases where self::get_timeout() is too much
+     * and a simple $this->getSession()->getPage()->find() could not
+     * be enough.
+     *
+     * @return int Timeout in seconds
+     */
+    public static function get_reduced_timeout() : int {
+        return self::get_real_timeout(2);
+    }
+
+    /**
+     * Gets the extended timeout.
+     *
+     * A longer timeout for cases where the normal timeout is not enough.
+     *
+     * @return int Timeout in seconds
+     */
+    public static function get_extended_timeout() : int {
+        return self::get_real_timeout(10);
     }
 }

@@ -85,7 +85,7 @@ class data_field_radiobutton extends data_field_base {
         return $str;
     }
 
-     function display_search_field($value = '') {
+    function display_search_field($value = '') {
         global $CFG, $DB;
 
         $varcharcontent = $DB->sql_compare_text('content', 255);
@@ -103,12 +103,17 @@ class data_field_radiobutton extends data_field_base {
         }
         $return = html_writer::label(get_string('fieldtypelabel', "datafield_" . $this->type),
             'menuf_' . $this->field->id, false, array('class' => 'accesshide'));
-        $return .= html_writer::select($options, 'f_'.$this->field->id, $value, null, array('class' => 'custom-select'));
+        $return .= html_writer::select($options, 'f_'.$this->field->id, $value,
+            array('' => 'choosedots'), array('class' => 'custom-select'));
         return $return;
     }
 
-    function parse_search_field() {
-        return optional_param('f_'.$this->field->id, '', PARAM_NOTAGS);
+    public function parse_search_field($defaults = null) {
+        $param = 'f_'.$this->field->id;
+        if (empty($defaults[$param])) {
+            $defaults = array($param => '');
+        }
+        return optional_param($param, $defaults[$param], PARAM_NOTAGS);
     }
 
     function generate_sql($tablealias, $value) {
@@ -131,6 +136,21 @@ class data_field_radiobutton extends data_field_base {
      */
     function notemptyfield($value, $name) {
         return strval($value) !== '';
+    }
+
+    /**
+     * Return the plugin configs for external functions.
+     *
+     * @return array the list of config parameters
+     * @since Moodle 3.3
+     */
+    public function get_config_for_external() {
+        // Return all the config parameters.
+        $configs = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $configs["param$i"] = $this->field->{"param$i"};
+        }
+        return $configs;
     }
 }
 

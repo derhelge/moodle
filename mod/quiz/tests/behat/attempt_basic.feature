@@ -31,15 +31,14 @@ Feature: Attempt a quiz
       | question | page | maxmark |
       | TF1      | 1    |         |
       | TF2      | 1    | 3.0     |
+    And user "student" has attempted "Quiz 1" with responses:
+      | slot | response |
+      |   1  | True     |
+      |   2  | False    |
     When I log in as "student"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I follow "Quiz 1"
-    And I press "Attempt quiz now"
-    And I click on "True" "radio" in the "First question" "question"
-    And I click on "False" "radio" in the "Second question" "question"
-    And I press "Finish attempt ..."
-    And I press "Submit all and finish"
-    And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
+    And I follow "Review"
     Then I should see "25.00 out of 100.00"
 
   @javascript
@@ -68,7 +67,7 @@ Feature: Attempt a quiz
       | Section 3 | 5         | 0       |
 
     When I log in as "student"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I follow "Quiz 1"
     And I press "Attempt quiz now"
 
@@ -111,7 +110,7 @@ Feature: Attempt a quiz
       | TF1      | 1    |
       | TF2      | 2    |
     When I log in as "student"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I follow "Quiz 1"
     And I press "Attempt quiz now"
     Then I should see "Text of the first question"

@@ -341,7 +341,7 @@ class core_files_converter_testcase extends advanced_testcase {
     }
 
     /**
-     * Test the can_convert_storedfile_to function with a file with indistinguished mimetype.
+     * Test the can_convert_storedfile_to function with a file with a known mimetype and extension.
      */
     public function test_can_convert_storedfile_to_docx() {
         $returnvalue = (object) [];
@@ -352,8 +352,7 @@ class core_files_converter_testcase extends advanced_testcase {
 
         $types = \core_filetypes::get_types();
 
-        // A file with filename '.' is a directory.
-        $file = $this->get_stored_file('example content', 'example', [
+        $file = $this->get_stored_file('example content', 'example.docx', [
                 'mimetype' => $types['docx']['type'],
             ]);
 
@@ -417,6 +416,7 @@ class core_files_converter_testcase extends advanced_testcase {
         $conversion->set_sourcefile($file);
         $conversion->set('targetformat', 'target');
         $conversion->set('status', conversion::STATUS_IN_PROGRESS);
+        $conversion->create();
 
         $converterinstance = $this->get_mocked_converter([
                 'poll_conversion_status',
@@ -484,6 +484,7 @@ class core_files_converter_testcase extends advanced_testcase {
             'sourcefileid' => $file->get_id(),
             'targetformat' => 'target',
         ]);
+        $conversion->create();
 
         $converter->poll_conversion($conversion);
 

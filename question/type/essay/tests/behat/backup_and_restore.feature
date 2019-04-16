@@ -24,8 +24,7 @@ Feature: Test duplicating a quiz containing an Assay question
       | essay-002 | 1 |
       | essay-003 | 1 |
     And I log in as "admin"
-    And I am on site homepage
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
 
   @javascript
   Scenario: Backup and restore a course containing 3 Essay questions
@@ -33,7 +32,7 @@ Feature: Test duplicating a quiz containing an Assay question
       | Confirmation | Filename | test_backup.mbz |
     And I restore "test_backup.mbz" backup into a new course using this options:
       | Schema | Course name | Course 2 |
-    And I navigate to "Question bank" node in "Course administration"
+    And I navigate to "Question bank" in current page administration
     And I should see "essay-001"
     And I should see "essay-002"
     And I should see "essay-003"

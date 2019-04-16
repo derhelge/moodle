@@ -76,7 +76,7 @@ class competency extends persistent {
                 'default' => FORMAT_HTML
             ),
             'sortorder' => array(
-                'default' => null,
+                'default' => 0,
                 'type' => PARAM_INT
             ),
             'parentid' => array(
@@ -676,7 +676,8 @@ class competency extends persistent {
     public static function share_same_framework(array $ids) {
         global $DB;
         list($insql, $params) = $DB->get_in_or_equal($ids);
-        return $DB->count_records_select(self::TABLE, "id $insql", $params, "COUNT(DISTINCT(competencyframeworkid))") == 1;
+        $sql = "SELECT COUNT('x') FROM (SELECT DISTINCT(competencyframeworkid) FROM {" . self::TABLE . "} WHERE id {$insql}) f";
+        return $DB->count_records_sql($sql, $params) == 1;
     }
 
     /**
