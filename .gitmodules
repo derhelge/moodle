@@ -1,0 +1,3 @@
+[submodule "auth/ldap_syncplus"]
+	path = auth/ldap_syncplus
+	url = git@github.com:derhelge/moodle-auth_ldap_syncplus.git
